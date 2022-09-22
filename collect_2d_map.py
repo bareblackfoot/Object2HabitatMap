@@ -10,7 +10,7 @@ from utils.vis_utils import colors_rgb
 from utils import runner as dr
 import habitat
 habitat_path = habitat.__path__[0]
-parser = argparse.ArgumentParser(description='Auto Add Object')
+parser = argparse.ArgumentParser(description='Collect 2D map')
 parser.add_argument('--data_dir', default='data', type=str)
 parser.add_argument('--img_width', default=256, type=int)
 parser.add_argument('--img_height', default=256, type=int)
