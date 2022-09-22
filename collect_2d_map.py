@@ -1,13 +1,13 @@
 import os
 import argparse
 import numpy as np
-import cv2, glob, joblib
+import cv2, glob, joblib, csv
 import matplotlib.pyplot as plt
 from PIL import Image
 from utils.statics import GIBSON_TINY_TRAIN_SCENE, GIBSON_TINY_TEST_SCENE, HM3D_TRAIN_SCENE, HM3D_VAL_SCENE, MP3D_TRAIN_SCENE, MP3D_VAL_SCENE
 from utils.settings import default_sim_settings
 from utils.vis_utils import colors_rgb
-from utils import runner as dr
+from runner import default_runner as dr
 import habitat
 habitat_path = habitat.__path__[0]
 parser = argparse.ArgumentParser(description='Collect 2D map')
@@ -29,28 +29,6 @@ elif args.dataset == "gibson_tiny":
 elif args.dataset == "gibson":
     scenes = ['Adrian', 'Albertville', 'Anaheim', 'Andover', 'Angiola', 'Annawan', 'Applewold', 'Arkansaw', 'Avonia', 'Azusa', 'Ballou', 'Beach', 'Bolton', 'Bowlus', 'Brevort', 'Capistrano', 'Colebrook', 'Convoy', 'Cooperstown', 'Crandon', 'Delton', 'Dryville', 'Dunmor', 'Eagerville', 'Goffs', 'Hainesburg', 'Hambleton', 'Haxtun', 'Hillsdale', 'Hometown', 'Hominy', 'Kerrtown', 'Maryhill', 'Mesic', 'Micanopy', 'Mifflintown', 'Mobridge', 'Monson', 'Mosinee', 'Nemacolin', 'Nicut', 'Nimmons', 'Nuevo', 'Oyens', 'Parole', 'Pettigrew', 'Placida', 'Pleasant', 'Quantico', 'Rancocas', 'Reyno', 'Roane', 'Roeville', 'Rosser', 'Roxboro', 'Sanctuary', 'Sasakwa', 'Sawpit', 'Seward', 'Shelbiana', 'Silas', 'Sodaville', 'Soldier', 'Spencerville', 'Spotswood', 'Springhill', 'Stanleyville', 'Stilwell', 'Stokes', 'Sumas', 'Superior', 'Woonsocket']
     scenes += ['Cantwell', 'Denmark', 'Eastville', 'Edgemere', 'Elmira', 'Eudora', 'Greigsville', 'Mosquito', 'Pablo', 'Ribera', 'Sands', 'Scioto', 'Sisters', 'Swormville']
-elif args.dataset == "rllab133":
-    scenes = ["rllab133"]
-elif args.dataset == "realhome":
-    scenes = ["realhome"]
-mouseX = 0
-mouseY = 0
-mapX = 0
-mapY = 0
-
-
-def draw_circle(event, x, y, flags, param):
-    global mouseX, mouseY
-    if event == cv2.EVENT_LBUTTONDBLCLK:
-        mouseX, mouseY = x, y
-        print('object point x:{0}, y:{1}'.format(mouseX,mouseY))
-
-
-def draw_circle_on_map(event, x, y, flags, param):
-    global mapX, mapY
-    if event == cv2.EVENT_LBUTTONDBLCLK:
-        mapX, mapY = x, y
-        print('map point x:{0}, y:{1}'.format(mapX, mapY))
 
 
 def make_settings():
@@ -94,7 +72,7 @@ class TDMapCollector(object):
         elif args.dataset == "mp3d":
             self.num_category = 40
         elif args.dataset == "hm3d":
-            self.num_category = 100
+            self.num_category = 100 #over 100 but only color upto 100
         self.data_dir = f"./data/{args.dataset}_floorplans"
         os.makedirs(f"./data/{args.dataset}_floorplans", exist_ok=True)
         os.makedirs(f"./data/{args.dataset}_floorplans/out_dir_semantic_png", exist_ok=True)
@@ -119,10 +97,6 @@ class TDMapCollector(object):
                 settings["scene"] = os.path.join(habitat_path, '../data/scene_datasets/{}/{}/{}.glb'.format(args.dataset, scene, scene))
             elif "gibson" in args.dataset:
                 settings["scene"] = os.path.join(habitat_path, '../data/scene_datasets/{}/{}.glb'.format("gibson", scene))
-            elif args.dataset == "rllab133":
-                settings["scene"] = os.path.join(habitat_path, '../data/scene_datasets/{}/{}.glb'.format(args.dataset, scene))
-            elif args.dataset == "realhome":
-                settings["scene"] = os.path.join(habitat_path, '../data/scene_datasets/{}/{}.glb'.format(args.dataset, scene))
             elif args.dataset == "hm3d":
                 path = glob.glob(os.path.join(habitat_path, '../data/scene_datasets/{}/*/{}/{}.glb'.format(args.dataset, "*" + scene, scene)))[0]
                 settings["scene"] = path
@@ -132,8 +106,8 @@ class TDMapCollector(object):
                 abs(upper_bound[coord] - lower_bound[coord]) / self.map_resolution
                 for coord in [0, 2]
             )
-            frame_width = int((upper_bound[0]- lower_bound[0])//meters_per_pixel)
-            frame_height = int((upper_bound[2]- lower_bound[2])//meters_per_pixel)
+            frame_width = int((upper_bound[0] - lower_bound[0])//meters_per_pixel)
+            frame_height = int((upper_bound[2] - lower_bound[2])//meters_per_pixel)
             settings['tdv_width'] = frame_width
             settings['tdv_height'] = frame_height
             runner.reset_scene(settings, dr.DemoRunnerType.EXAMPLE)
