@@ -169,12 +169,8 @@ class TopdownView:
             imgWidth,
             imgHeight,
         ) = self.dimensions
-        if self.dataset == "mp3d":
-            grid_x = int((realworld_x - world_min_width) / worldWidth * imgWidth)
-            grid_y = imgHeight - int((-realworld_y - world_min_height) / worldHeight * imgHeight)
-        else:
-            A = [realworld_x-(worldWidth+2*world_min_width)/2, realworld_y-(worldHeight+2*world_min_height)/2, 1, 1]
-            grid_x, grid_y = np.array([imgWidth/2, imgHeight/2]) * np.matmul(self.P, A)[:2] + np.array([imgWidth/2, imgHeight/2])
+        A = [realworld_x-(worldWidth+2*world_min_width)/2, realworld_y-(worldHeight+2*world_min_height)/2, 1, 1]
+        grid_x, grid_y = np.array([imgWidth/2, imgHeight/2]) * np.matmul(self.P, A)[:2] + np.array([imgWidth/2, imgHeight/2])
         return int(grid_x), int(grid_y)
 
     def from_grid(
@@ -360,6 +356,8 @@ class MapRunner:
     def get_semantic_mapping(self):
         scene_objects = self._sim.semantic_scene.objects
         self.mapping = {int(obj.id.split("_")[-1]): obj.category.index() for obj in scene_objects if obj != None}
+        regions = self._sim.semantic_scene.regions
+        self.region_mapping = {int(region.id.split("_")[-1]): region.category.index() for region in regions if region != None}
 
     def get_floors(self,area, floors):
         aa = []

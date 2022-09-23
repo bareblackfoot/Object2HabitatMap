@@ -12,8 +12,6 @@ import habitat_sim.utils as utils
 from habitat_sim.physics import MotionType
 from utils.settings import default_sim_settings, make_cfg
 import quaternion as q
-import cv2
-import imutils
 from magnum import Quaternion, Vector3, Rad
 from habitat.utils.visualizations import fog_of_war, maps
 from collections import Counter
@@ -24,8 +22,6 @@ class DemoRunnerType(Enum):
     EXAMPLE = 2
 
 
-stitcher = cv2.createStitcher(1) if imutils.is_cv3() else cv2.Stitcher_create(1)
-vis = False
 from magnum import Quaternion
 
 
@@ -294,5 +290,11 @@ class DemoRunner:
             self._sim.remove_object(obj_id)
 
     def get_semantic_mapping(self):
-        scene_objects = self._sim.semantic_scene.objects
-        self.mapping = {int(obj.id.split("_")[-1]): obj.category.index() for obj in scene_objects if obj != None}
+        self.obj_mapping = {int(obj.id.split("_")[-1]): obj.category.index() for obj in self._sim.semantic_scene.objects if obj != None}
+        self.obj_name = {int(obj.id.split("_")[-1]): obj.category.name() for obj in self._sim.semantic_scene.objects if obj != None}
+        regions = self._sim.semantic_scene.regions
+        if len(regions) > 0:
+            self.region_to_name = {int(region.id.split("_")[-1]): region.category.name() for region in regions}
+            self.region_mapping = {int(obj.id.split("_")[-1]): int(obj.id.split("_")[-2]) for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}
+            self.region_name = {int(obj.id.split("_")[-1]): self.region_to_name[int(obj.id.split("_")[-2])] for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}
+            self.region_to_place = {int(obj.id.split("_")[-2]): self.region_to_name[int(obj.id.split("_")[-2])] for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}

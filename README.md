@@ -1,16 +1,25 @@
 # CollectHabitatMap
-It provides RGB/Semantic Top Down Map for Habitat-Sim.
-Note that depth map is not supported yet.
+It provides RGB/Semantic(Instance, Region, Place) Top Down Map for Habitat-Sim.
+The position on the map can be converted to the position in the habitat-sim scene (vice versa).
 
 ## Example Output
-![HM3D](sample/hm3d.png)
-![HM3DSemantic](sample/hm3d_semantic.png)
+* RGB Top Down Map <br>
+<img src="sample/hm3d.png" alt="HM3D" width="200"/>
+* Instance Top Down Map <br>
+<img src="sample/hm3d_semantic_inst.png" alt="HM3DSemanticInstance" width="200"/>
+* Region Top Down Map <br>
+<img src="sample/hm3d_semantic_region.png" alt="HM3DSemanticRegion" width="200"/>
+* Place Top Down Map <br>
+<img src="sample/hm3d_semantic_place.png" alt="HM3DSemanticPlace" width="200"/>
 
 ## Download
-You can download the generated top down maps [Here](https://mysnu-my.sharepoint.com/:u:/g/personal/blackfoot_seoul_ac_kr/EfMyJQK64a1Fnb3iEBJDd8cBhJvTeRpEMvZRA8YsJdESyA?e=7Y3yiq).
+You can download the generated top down maps [Here]().
 
 ## Play with Map
 After collecting the map, play with it using play_with_2dmap.py
-You can use 'w/a/s/d' buttons to move an agent and double click the map and press 'm' button to move to the clicked position.
-Click 'n' button to move random point in the map.
-Click 'v' button to see next house.
+
+### Usage
+* You can use 'w/a/s/d' buttons to move an agent in the simulator.
+* Double click the map and press 'm' to move to the clicked position.
+* Press 'n' to move random point in the map.
+* Press 'v' to see next house.
