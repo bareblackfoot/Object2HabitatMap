@@ -294,7 +294,9 @@ class DemoRunner:
         self.obj_name = {int(obj.id.split("_")[-1]): obj.category.name() for obj in self._sim.semantic_scene.objects if obj != None}
         regions = self._sim.semantic_scene.regions
         if len(regions) > 0:
-            self.region_to_name = {int(region.id.split("_")[-1]): region.category.name() for region in regions}
-            self.region_mapping = {int(obj.id.split("_")[-1]): int(obj.id.split("_")[-2]) for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}
-            self.region_name = {int(obj.id.split("_")[-1]): self.region_to_name[int(obj.id.split("_")[-2])] for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}
-            self.region_to_place = {int(obj.id.split("_")[-2]): self.region_to_name[int(obj.id.split("_")[-2])] for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}
+            if len(self._sim.semantic_scene.objects[0].id.split("_")) == 3:
+                self.region_mapping = {int(obj.id.split("_")[-1]): int(obj.id.split("_")[-2]) for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}
+                if regions[0].category != None:
+                    self.region_to_name = {int(region.id.split("_")[-1]): region.category.name() for region in regions}
+                    self.region_name = {int(obj.id.split("_")[-1]): self.region_to_name[int(obj.id.split("_")[-2])] for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}
+                    self.region_to_place = {int(obj.id.split("_")[-2]): self.region_to_name[int(obj.id.split("_")[-2])] for obj in self._sim.semantic_scene.objects if obj != None and len(obj.id.split("_")) == 3}

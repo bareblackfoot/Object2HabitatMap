@@ -38,13 +38,11 @@ class DemoRunnerType(Enum):
 
 
 class TopdownView:
-    def __init__(self, sim, meters_per_pixel=0.02):
+    def __init__(self, sim, dataset, meters_per_pixel=0.02):
         self.sim = sim
         self.meters_per_pixel = meters_per_pixel
         self.floor = "0"
-        self.dataset = "mp3d" if "mp3d" in sim.config.sim_cfg.scene_id else "gibson"
-        if self.dataset == "gibson":
-            self.dataset = "hm3d" if "hm3d" in sim.config.sim_cfg.scene_id else "gibson"
+        self.dataset = dataset
         self.render_configs = {}
         self.floor_reader()
         self.agent_radius = self.sim.agents[0].agent_config.radius
@@ -61,8 +59,7 @@ class TopdownView:
         self.P = self.render_configs[scan_name][self.floor]['Projection']
         self.map_shape = [imgHeight, imgWidth]
         self.meters_per_pixel = float(worldWidth/imgWidth)
-        self.padding_pixel = np.int(0.1/self.meters_per_pixel) #10cm
-        # print("padding_pixel", self.padding_pixel)
+        self.padding_pixel = np.int(0.1/self.meters_per_pixel) #10cm padding
         self.dimensions = [
             world_min_width,
             world_min_height,
@@ -87,12 +84,12 @@ class TopdownView:
         agent_state = self.sim.get_agent(0).get_state()
         self.get_floor(agent_state.position, scan_name)
         self.get_dimensions(scan_name)
-        stdv = cv2.imread("./data/{}_floorplans/out_dir_semantic_png/gray_output_{}_level_{}.0.png".format(self.dataset, scan_name, self.floor, self.dataset), cv2.IMREAD_GRAYSCALE)
+        stdv = cv2.imread("./data/{}_floorplans/semantic_inst/orig_{}_level_{}.png".format(self.dataset, scan_name, self.floor, self.dataset), cv2.IMREAD_GRAYSCALE)
         try:
             self.top_down_map = stdv[:,:,0]
         except:
             self.top_down_map = stdv
-        color_stdv = cv2.imread("./data/{}_floorplans/out_dir_rgb_png/output_{}_level_{}.0.png".format(self.dataset, scan_name, self.floor, self.dataset))
+        color_stdv = cv2.imread("./data/{}_floorplans/rgb/{}_level_{}.png".format(self.dataset, scan_name, self.floor, self.dataset))
         color_stdv[color_stdv==0] = 255
         self.rgb_top_down_map = color_stdv
         return self.top_down_map
@@ -463,7 +460,7 @@ class MapRunner:
         navmesh_settings.set_defaults()
         navmesh_success = self._sim.recompute_navmesh(self._sim.pathfinder, navmesh_settings, include_static_objects=True)
         print("navmesh_success ", navmesh_success )
-        self.tdv = TopdownView(self._sim)
+        self.tdv = TopdownView(self._sim, self.dataset)
         self.scene_height = self._sim.agents[0].state.position[1]
         self.tdv.draw_top_down_map(height=self.scene_height)
         self.curr_rot = self.tdv.get_polar_angle(q.from_float_array(self.init_rotation))
@@ -580,7 +577,6 @@ class MapRunner:
 
     def as_euler_angles(self, q):
         alpha_beta_gamma = []
-        # n = np.linalg.norm(q)
         n = np.sqrt(q[0] ** 2 + q[1] ** 2 + q[2] ** 2 + q[3] ** 2)
         alpha_beta_gamma.append(np.arctan2(q[3], q[0]) + np.arctan2(-q[1], q[2]))
         alpha_beta_gamma.append(2 * np.arccos(np.sqrt((q[0] ** 2 + q[3] ** 2) / n)))
@@ -591,6 +587,6 @@ class MapRunner:
         agent = self._sim.agents[0]
         start_state = agent.get_state()
         start_state.position = position
-        start_state.rotation = rotation  # q.from_float_array(rotation)
+        start_state.rotation = rotation
         start_state.sensor_states = dict()
         agent.set_state(start_state)

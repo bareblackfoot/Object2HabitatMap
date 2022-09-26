@@ -4,7 +4,7 @@ import numpy as np
 import cv2, glob, joblib, csv
 import matplotlib.pyplot as plt
 from PIL import Image
-from utils.statics import GIBSON_TINY_TRAIN_SCENE, GIBSON_TINY_TEST_SCENE, HM3D_TRAIN_SCENE, HM3D_VAL_SCENE, MP3D_TRAIN_SCENE, MP3D_VAL_SCENE
+from utils.statics import GIBSON_TRAIN_SCENE, GIBSON_TEST_SCENE, GIBSON_TINY_TRAIN_SCENE, GIBSON_TINY_TEST_SCENE, HM3D_TRAIN_SCENE, HM3D_VAL_SCENE, MP3D_TRAIN_SCENE, MP3D_VAL_SCENE
 from utils.settings import default_sim_settings
 from utils.vis_utils import colors_rgb
 from runner import default_runner as dr
@@ -27,10 +27,9 @@ elif args.dataset == "hm3d":
 elif args.dataset == "gibson_tiny":
     scenes = GIBSON_TINY_TRAIN_SCENE + GIBSON_TINY_TEST_SCENE
 elif args.dataset == "gibson":
-    scenes = ['Adrian', 'Albertville', 'Anaheim', 'Andover', 'Angiola', 'Annawan', 'Applewold', 'Arkansaw', 'Avonia', 'Azusa', 'Ballou', 'Beach', 'Bolton', 'Bowlus', 'Brevort', 'Capistrano', 'Colebrook', 'Convoy', 'Cooperstown', 'Crandon', 'Delton', 'Dryville', 'Dunmor', 'Eagerville', 'Goffs', 'Hainesburg', 'Hambleton', 'Haxtun', 'Hillsdale', 'Hometown', 'Hominy', 'Kerrtown', 'Maryhill', 'Mesic', 'Micanopy', 'Mifflintown', 'Mobridge', 'Monson', 'Mosinee', 'Nemacolin', 'Nicut', 'Nimmons', 'Nuevo', 'Oyens', 'Parole', 'Pettigrew', 'Placida', 'Pleasant', 'Quantico', 'Rancocas', 'Reyno', 'Roane', 'Roeville', 'Rosser', 'Roxboro', 'Sanctuary', 'Sasakwa', 'Sawpit', 'Seward', 'Shelbiana', 'Silas', 'Sodaville', 'Soldier', 'Spencerville', 'Spotswood', 'Springhill', 'Stanleyville', 'Stilwell', 'Stokes', 'Sumas', 'Superior', 'Woonsocket']
-    scenes += ['Cantwell', 'Denmark', 'Eastville', 'Edgemere', 'Elmira', 'Eudora', 'Greigsville', 'Mosquito', 'Pablo', 'Ribera', 'Sands', 'Scioto', 'Sisters', 'Swormville']
+    scenes = GIBSON_TRAIN_SCENE + GIBSON_TEST_SCENE
 
-scenes = scenes[35:]
+
 def make_settings():
     settings = default_sim_settings.copy()
     settings["max_frames"] = 100
@@ -75,7 +74,7 @@ class TDMapCollector(object):
             self.num_category = 100 #over 100 but only color upto 100
         self.data_dir = f"./data/{args.dataset}_floorplans"
         os.makedirs(f"./data/{args.dataset}_floorplans", exist_ok=True)
-        os.makedirs(f"./data/{args.dataset}_floorplans/semantic", exist_ok=True)
+        os.makedirs(f"./data/{args.dataset}_floorplans/semantic_inst", exist_ok=True)
         os.makedirs(f"./data/{args.dataset}_floorplans/semantic_obj", exist_ok=True)
         os.makedirs(f"./data/{args.dataset}_floorplans/semantic_region", exist_ok=True)
         os.makedirs(f"./data/{args.dataset}_floorplans/semantic_place", exist_ok=True)
@@ -142,7 +141,8 @@ class TDMapCollector(object):
             floor_cnt = 0
             obs = runner._sim.get_sensor_observations()
             rgb_prev = np.zeros_like(obs['ortho_rgba_sensor'])
-            [self.places.add(i) for i in np.unique(np.stack(runner.region_name.values()))]
+            if hasattr(runner, 'region_name'):
+                [self.places.add(i) for i in np.unique(np.stack(runner.region_name.values()))]
             prev_z_selected = 100
             for z_i, z in enumerate(np.linspace(lower_bound[1], upper_bound[1], 100)):
                 found, nav_height = runner.init_with_height(z, (lower_bound[0] + upper_bound[0])/2., (lower_bound[2] + upper_bound[2])/2.)
@@ -157,6 +157,7 @@ class TDMapCollector(object):
                     if abs(prev_z_selected - z_low) > 2:
                         obs = runner._sim.get_sensor_observations()
                         depth = obs['ortho_depth_sensor']
+                        mask = (abs(obs['ortho_rgba_sensor'][...,:3] - rgb_prev[...,:3]) < 3).all(axis=-1)
                         if obs['ortho_semantic_sensor'].sum() > 0:
                             if hasattr(runner, 'region_mapping'):
                                 semantic_array = obs['ortho_semantic_sensor'].copy()
@@ -170,26 +171,29 @@ class TDMapCollector(object):
                                     except:
                                         replace_values.append(-1)
                                 sem_region_array = np.take(replace_values, semantic_array)
-                                place_mapping = {k: list(self.places).index(v) for k, v in runner.region_to_place.items()}
                                 sem_region_array[semantic_array == 0] = -1
-                                max_key = np.max(np.array(list(place_mapping.keys())))
-                                replace_values = []
-                                for i in np.arange(max_key + 1):
-                                    try:
-                                        replace_values.append(place_mapping[i])
-                                    except:
-                                        replace_values.append(-1)
-                                sem_place_array = np.take(replace_values, sem_region_array)
-                                sem_place_array[sem_region_array == -1] = -1
-                                semantic_place_img = Image.new("P", (sem_place_array.shape[1], sem_place_array.shape[0]))
-                                semantic_place_img.putpalette(colors_rgb.flatten())
-                                semantic_place_img.putdata((sem_place_array.flatten() % 100).astype(np.uint8))
-                                semantic_place_img = np.array(semantic_place_img.convert("RGBA"))[...,:3]
+                                if hasattr(runner, 'region_name'):
+                                    place_mapping = {k: list(self.places).index(v) for k, v in runner.region_to_place.items()}
+                                    max_key = np.max(np.array(list(place_mapping.keys())))
+                                    replace_values = []
+                                    for i in np.arange(max_key + 1):
+                                        try:
+                                            replace_values.append(place_mapping[i])
+                                        except:
+                                            replace_values.append(-1)
+                                    sem_place_array = np.take(replace_values, sem_region_array)
+                                    sem_place_array[sem_region_array == -1] = -1
+                                    semantic_place_img = Image.new("P", (sem_place_array.shape[1], sem_place_array.shape[0]))
+                                    semantic_place_img.putpalette(colors_rgb.flatten())
+                                    semantic_place_img.putdata((sem_place_array.flatten() % 100).astype(np.uint8))
+                                    semantic_place_img = np.array(semantic_place_img.convert("RGBA"))[...,:3]
+                                    semantic_place_img[depth==0] = 0
 
                                 semantic_region_img = Image.new("P", (sem_region_array.shape[1], sem_region_array.shape[0]))
                                 semantic_region_img.putpalette(colors_rgb.flatten())
                                 semantic_region_img.putdata((sem_region_array.flatten() % 100).astype(np.uint8))
                                 semantic_region_img = np.array(semantic_region_img.convert("RGBA"))[...,:3]
+                                semantic_region_img[depth==0] = 0
 
                             max_key = np.max(np.array(list(runner.obj_mapping.keys())))
                             replace_values = []
@@ -202,37 +206,38 @@ class TDMapCollector(object):
                             semantic_array = obs['ortho_semantic_sensor'].copy()
                             sem_category_array = np.take(replace_values, semantic_array)
 
-                            semantic_obj_img = Image.new(
-                                "P", (sem_category_array.shape[1],sem_category_array.shape[0])
-                            )
-                            semantic_obj_img.putpalette(colors_rgb.flatten())
-                            semantic_obj_img.putdata((sem_category_array.flatten() % 100).astype(np.uint8))
-                            semantic_obj_img = np.array(semantic_obj_img.convert("RGBA"))[...,:3]
+                            semantic_cat_img = Image.new("P", (sem_category_array.shape[1], sem_category_array.shape[0]))
+                            semantic_cat_img.putpalette(colors_rgb.flatten())
+                            semantic_cat_img.putdata((sem_category_array.flatten() % 100).astype(np.uint8))
+                            semantic_cat_img = np.array(semantic_cat_img.convert("RGBA"))[...,:3]
+                            semantic_cat_img[depth==0] = 0
 
                             semantic_array = obs['ortho_semantic_sensor'].copy()
                             semantic_inst_img = Image.new("P", (semantic_array.shape[1], semantic_array.shape[0]))
                             semantic_inst_img.putpalette(colors_rgb.flatten())
                             semantic_inst_img.putdata((semantic_array.flatten() % 100).astype(np.uint8))
                             semantic_inst_img = np.array(semantic_inst_img.convert("RGBA"))[..., :3]
+                            semantic_inst_img[depth==0] = 0
 
                             obs = runner._sim.get_sensor_observations()
                             semantic_orig = obs['ortho_semantic_sensor'].astype(np.float32)
-                            if args.dataset == "gibson":
-                                semantic_obj_img[depth==0] = 0
+                            if "gibson" in args.dataset:
                                 semantic_orig[depth==0] = -1
                                 semantic_orig[semantic_orig==0] = np.max(semantic_orig) + 1 #floor
                                 semantic_orig[semantic_orig==-1] = 0
                             semantic_orig = semantic_orig.astype(np.uint32)
                             plt.imsave(f"./data/{args.dataset}_floorplans/semantic_inst/orig_{scene}_level_{floor_cnt}.png", semantic_orig)
                             plt.imsave(f"./data/{args.dataset}_floorplans/semantic_inst/{scene}_level_{floor_cnt}.png", semantic_inst_img)
-                            plt.imsave(f"./data/{args.dataset}_floorplans/semantic_obj/{scene}_level_{floor_cnt}.png", semantic_obj_img)
+                            plt.imsave(f"./data/{args.dataset}_floorplans/semantic_obj/{scene}_level_{floor_cnt}.png", semantic_cat_img)
                             if hasattr(runner, 'region_mapping'):
-                                plt.imsave(f"./data/{args.dataset}_floorplans/semantic_place/orig_{scene}_level_{floor_cnt}.png", sem_place_array)
-                                plt.imsave(f"./data/{args.dataset}_floorplans/semantic_place/{scene}_level_{floor_cnt}.png", semantic_place_img)
                                 plt.imsave(f"./data/{args.dataset}_floorplans/semantic_region/orig_{scene}_level_{floor_cnt}.png", sem_region_array)
                                 plt.imsave(f"./data/{args.dataset}_floorplans/semantic_region/{scene}_level_{floor_cnt}.png", semantic_region_img)
-                        mask = (abs(obs['ortho_rgba_sensor'][...,:3] - rgb_prev[...,:3]) < 3).all(axis=-1)
-                        plt.imsave(f"./data/{args.dataset}_floorplans/rgb/{scene}_level_{floor_cnt}.png", obs['ortho_rgba_sensor'][:,:,:3].astype(np.uint8))
+                                if hasattr(runner, 'region_name'):
+                                    plt.imsave(f"./data/{args.dataset}_floorplans/semantic_place/orig_{scene}_level_{floor_cnt}.png", sem_place_array)
+                                    plt.imsave(f"./data/{args.dataset}_floorplans/semantic_place/{scene}_level_{floor_cnt}.png", semantic_place_img)
+                        rgb = obs['ortho_rgba_sensor'][:,:,:3].astype(np.uint8)
+                        rgb[depth==0] = 0
+                        plt.imsave(f"./data/{args.dataset}_floorplans/rgb/{scene}_level_{floor_cnt}.png", rgb)
                         # plt.imsave(f"./data/{args.dataset}_floorplans/depth/{scene}_level_{floor_cnt}.png", obs['ortho_depth_sensor'])
                         cv2.imwrite(f"./data/{args.dataset}_floorplans/mask/{scene}_level_{floor_cnt}.png", (((obs['ortho_depth_sensor'] > 0) & (1-mask))* 255).astype(np.uint8))
                         rgb_prev = obs['ortho_rgba_sensor']

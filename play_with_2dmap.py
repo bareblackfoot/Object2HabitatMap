@@ -2,7 +2,7 @@ import os, glob
 import argparse
 from runner import map_runner as dr
 import cv2
-from utils.statics import GIBSON_TINY_TRAIN_SCENE, GIBSON_TINY_TEST_SCENE, MP3D_TRAIN_SCENE, MP3D_VAL_SCENE, HM3D_TRAIN_SCENE, HM3D_VAL_SCENE
+from utils.statics import GIBSON_TRAIN_SCENE, GIBSON_TEST_SCENE, GIBSON_TINY_TRAIN_SCENE, GIBSON_TINY_TEST_SCENE, MP3D_TRAIN_SCENE, MP3D_VAL_SCENE, HM3D_TRAIN_SCENE, HM3D_VAL_SCENE
 from utils.settings import default_sim_settings
 import habitat
 habitat_path = habitat.__path__[0]
@@ -18,6 +18,11 @@ parser.add_argument('--cuda', default=True, type=bool)
 args = parser.parse_args()
 
 if args.dataset == "gibson":
+    if args.data_split == "train":
+        scenes = GIBSON_TRAIN_SCENE
+    elif args.data_split == "val":
+        scenes = GIBSON_TEST_SCENE
+elif args.dataset == "gibson_tiny":
     if args.data_split == "train":
         scenes = GIBSON_TINY_TRAIN_SCENE
     elif args.data_split == "val":
@@ -94,9 +99,10 @@ class PlayMap(object):
     def start(self, settings):
         next_Scene = False
         for nh, scene in enumerate(scenes):
+            scene = "2azQ1b91cZZ"
             if args.dataset == "mp3d":
                 settings["scene"] = os.path.join(habitat_path, '../data/scene_datasets/{}/{}/{}.glb'.format(args.dataset, scene, scene))
-            elif args.dataset == "gibson":
+            elif "gibson" in args.dataset:
                 settings["scene"] = os.path.join(habitat_path, '../data/scene_datasets/{}/{}.glb'.format(args.dataset, scene))
             elif args.dataset == "hm3d":
                 path = glob.glob(os.path.join(habitat_path, '../data/scene_datasets/{}/*/{}/{}.glb'.format(args.dataset, "*" + scene, scene)))[0]

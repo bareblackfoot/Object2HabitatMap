@@ -23,13 +23,21 @@ with open(os.path.join(os.path.dirname(__file__), "data/mp3d_valset.txt"), "r") 
     lines = f.readlines()
 MP3D_VAL_SCENE = [line.rstrip() for line in lines]
 
-with open(os.path.join(os.path.dirname(__file__), "data/gibson_trainset.txt"), "r") as f:
+with open(os.path.join(os.path.dirname(__file__), "data/gibsontiny_trainset.txt"), "r") as f:
     lines = f.readlines()
 GIBSON_TINY_TRAIN_SCENE = [line.rstrip() for line in lines]
 
-with open(os.path.join(os.path.dirname(__file__), "data/gibson_testset.txt"), "r") as f:
+with open(os.path.join(os.path.dirname(__file__), "data/gibsontiny_testset.txt"), "r") as f:
     lines = f.readlines()
 GIBSON_TINY_TEST_SCENE = [line.rstrip() for line in lines]
+
+with open(os.path.join(os.path.dirname(__file__), "data/gibson_trainset.txt"), "r") as f:
+    lines = f.readlines()
+GIBSON_TRAIN_SCENE = [line.rstrip() for line in lines]
+
+with open(os.path.join(os.path.dirname(__file__), "data/gibson_testset.txt"), "r") as f:
+    lines = f.readlines()
+GIBSON_TEST_SCENE = [line.rstrip() for line in lines]
 
 with open(os.path.join(os.path.dirname(__file__), "data/mp3d_catset.txt"), "r") as f:
     lines = f.readlines()
