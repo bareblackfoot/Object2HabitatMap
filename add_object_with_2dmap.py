@@ -110,7 +110,8 @@ class ObjectAdder(object):
     * Otherwise, the code will automatically add objects on the environment.
     * Double click the map and press 'm' to move to the clicked position.
     * Press 'n' to move random point in the map.
-    * Press 'v' to see next house.
+    * Press '8' to see prev house.
+    * Press '9' to see next house.
     * Press 'a' to add an object to the clicked position.
     * Press 'z' to remove the recently added object.
     * Press 'c' to remove all the objects.
