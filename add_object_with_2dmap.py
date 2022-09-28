@@ -256,8 +256,8 @@ class ObjectAdder(object):
                         elif key == ord('q'):
                             break
                         elif key == ord('i'):  # insert an object by category
-                            # category = input('Enter object category: ')
-                            category = "chair"
+                            category = input('Enter object category: ')
+                            # category = "chair"
                             semantic_id = runner.tdv.cat_top_down_map[int(mapY/ratio), int(mapX/ratio)]
                             add_done = False
                             while not add_done:
