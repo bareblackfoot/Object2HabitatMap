@@ -11,7 +11,6 @@ import habitat_sim.agent
 import habitat_sim.bindings as hsim
 import habitat_sim.utils as utils
 from habitat_sim.physics import MotionType
-from habitat_sim.utils import common as ut
 from habitat_sim.utils.common import d3_40_colors_rgb
 from utils.settings import default_sim_settings, make_cfg
 import quaternion as q
@@ -19,7 +18,6 @@ import cv2
 import imutils
 from utils.object_info import object_infos
 from magnum import Quaternion, Vector3, Rad
-from typing import Dict, List, Optional, Any
 from PIL import Image
 import math
 import magnum as mn
@@ -28,7 +26,7 @@ import torch.nn.functional as F
 _barrier = None
 SURFNORM_KERNEL = None
 import skimage.morphology
-import matplotlib.pyplot as plt
+import habitat
 from habitat.utils.geometry_utils import (
     quaternion_from_coeff,
     quaternion_rotate_vector,
@@ -42,8 +40,6 @@ from quaternion import quaternion
 from habitat_sim.utils import viz_utils as vut
 from utils.statics import CATEGORIES
 from utils.object_info import DETECT_CATEGORY
-from sklearn.cluster import KMeans
-from collections import Counter
 from runner.custom_habitat_map import draw_point
 class DemoRunnerType(Enum):
     BENCHMARK = 1
@@ -430,7 +426,6 @@ class ObjectRunner:
 
         obj_template_id = self.obj_templates_mgr.load_configs(os.path.join(self.glb_path_dir, f'{object_name}.object_config.json'))[0]
         obj = self.rigid_obj_mgr.add_object_by_template_id(obj_template_id)
-        import habitat
         if habitat.__version__ == "0.2.2":
             object_offset = Vector3(0, -obj.collision_shape_aabb.bottom, 0)
         elif habitat.__version__ == "0.2.1":
@@ -475,7 +470,7 @@ class ObjectRunner:
         while self._sim.get_world_time() < start_time + dt:
             self._sim.step_physics(1.0 / 60.0)
             if make_video:
-                color, _, _, _ = self.cur_state()
+                color, _, _ = self.cur_state()
                 aa = {'color_front_sensor': color}
                 observations.append(aa)
             # observations.append(self._sim.get_sensor_observations())
@@ -657,86 +652,60 @@ class ObjectRunner:
         # What to place
         cand_map_mask = np.zeros_like(self.tdv.cat_top_down_map)
         while cand_map_mask.sum() == 0:
-            object_candidates = list(self.obj_template_id.keys())
-            object_name = np.random.choice(object_candidates)
-            object_class = object_name.split("_")[0]
-
-            # Where to place
-            try:
+            object_class = np.random.choice(list(object_infos.keys()))
+            if len(object_infos[object_class]) > 0:
                 target_semantic_candidates = [CATEGORIES[self.dn].index(i) for i in self.object_loc[object_class]]
-            except:
-                target_semantic_candidates = [CATEGORIES[self.dn].index(i) for i in self.object_loc['etc']]
-            cand_map_mask = np.sum(np.stack([(self.tdv.cat_top_down_map == ci).astype(np.int32) for ci in target_semantic_candidates]), 0)
-            selem = skimage.morphology.disk(self.tdv.padding_pixel)
-            cand_map_mask = skimage.morphology.binary_erosion(cand_map_mask, selem)
+                cand_map_mask = np.sum(np.stack([(self.tdv.cat_top_down_map == ci).astype(np.int32) for ci in target_semantic_candidates]), 0)
+                selem = skimage.morphology.disk(self.tdv.padding_pixel)
+                cand_map_mask = skimage.morphology.binary_erosion(cand_map_mask, selem)
+
+        self.shuffle_num = (self.shuffle_num + 1) % len(object_infos[object_class])
+        object_name = list(object_infos[object_class].keys())[self.shuffle_num]
+        obj_template_id = self.obj_templates_mgr.load_configs(os.path.join(self.glb_path_dir, f'{object_name}.object_config.json'))[0]
+        obj = self.rigid_obj_mgr.add_object_by_template_id(obj_template_id)
+
         cands = np.stack(np.where(cand_map_mask == 1), 1) # class mask
         object_map_position = cands[np.random.choice(len(cands))][:2][::-1]
         world_x, world_y = self.tdv.from_grid(
             int(object_map_position[0]),
             int(object_map_position[1]),
         )
-        scene_object_id = self._sim.add_object(self.obj_template_id[object_name])
-        if scene_object_id != -1:
-            object_position = Vector3([world_x, self.tdv.z_max, world_y])
-            test_ray_1 = habitat_sim.geo.Ray()
-            test_ray_1.origin = object_position
-            test_ray_1.direction = mn.Vector3(habitat_sim.geo.GRAVITY)
-            ray_result = self._sim.cast_ray(test_ray_1)
-            object_bottom_z = -1000
-            for hh in ray_result.hits:
-                if hh.point[1] > object_bottom_z:
-                    object_bottom_z = hh.point[1]
-            if len(ray_result.hits) != 0:
-                object_position = Vector3([ray_result.hits[0].point[0], object_bottom_z - self._sim.get_object_scene_node(scene_object_id).cumulative_bb.bottom, ray_result.hits[0].point[2]])
-                surface_angle = np.arccos(np.sum(np.array(ray_result.hits[0].normal) * [0, 1, 0])) * 180 / np.pi
-                self._sim.set_translation(object_position, scene_object_id)
-                z_rotation = mn.Quaternion.rotation(mn.Rad(random.random() * 2 * math.pi), mn.Vector3(0, 1.0, 0))
-                self._sim.set_rotation(z_rotation, scene_object_id)
-                if abs(object_bottom_z - self.tdv.z_min) < 0.1:
-                    self._sim.set_object_motion_type(MotionType.DYNAMIC, scene_object_id)
-                    self.simulate(dt=1, make_video=False)
-            else:
-                surface_angle = 0
-                self._sim.set_translation(object_position, scene_object_id)
-                z_rotation = mn.Quaternion.rotation(mn.Rad(random.random() * 2 * math.pi), mn.Vector3(0, 1.0, 0))
-                self._sim.set_rotation(z_rotation, scene_object_id)
-                self._sim.set_object_motion_type(MotionType.DYNAMIC, scene_object_id)
-                self.simulate(dt=1, make_video=False)
 
-            # Set agent loc
-            self.set_agent_loc_with_obj(object_position)
+        if habitat.__version__ == "0.2.2":
+            object_offset = Vector3(0, -obj.collision_shape_aabb.bottom, 0)
+        elif habitat.__version__ == "0.2.1":
+            object_offset = Vector3(0, -self._sim.get_object_scene_node(obj.object_id).cumulative_bb.bottom, 0)
+        else:
+            raise NotImplementedError
+        object_position = Vector3([world_x, self.current_position[1], world_y]) + object_offset
+        quat = Quaternion(((0, 0, 0), 1))
+        obj.rotation = quat
+        self._sim.set_object_motion_type(MotionType.STATIC, obj.object_id)
+        # Set agent loc
+        self.set_agent_loc_with_obj(object_position)
+        self._sim.set_object_motion_type(MotionType.STATIC, obj.object_id)
 
-            # Get final object position
-            self._sim.set_object_motion_type(MotionType.STATIC, scene_object_id)
-            trans = self._sim.get_translation(scene_object_id)
-            rotat = self._sim.get_rotation(scene_object_id)
-            object_position = np.array([trans.x, trans.y, trans.z])
-            object_rotation = np.array([rotat.scalar, rotat.vector.x, rotat.vector.y, rotat.vector.z])
-
-            object_instance_id = np.array(list(self.mapping.keys())).max() + 1
-            self._sim.set_object_semantic_id(object_instance_id, scene_object_id)
-            try:
-                self.mapping[object_instance_id] = len(CATEGORIES[self.dn]) + np.where([object_class == dc for dc in DETECT_CATEGORY])[0][0]
-            except:
-                self.mapping[object_instance_id] = len(CATEGORIES[self.dn]) + 1
-            map_object_x, map_object_y = self.tdv.to_grid(
-                object_position[0],
-                object_position[2],
-            )
-            semantic_idx = self.tdv.cat_top_down_map[map_object_y, map_object_x]
-            surface_name = CATEGORIES[self.dn][semantic_idx]
-            print("Add {} on {} at {}".format(object_name, surface_name, object_position))
-            print(f"object map pose: {object_map_position[0]},{object_map_position[1]}")
-            print(f"object position: {object_position}")
-            self.tdv.draw_object(object_map_position)
-            navmesh_settings = habitat_sim.NavMeshSettings()
-            navmesh_settings.set_defaults()
-            navmesh_success = self._sim.recompute_navmesh(self._sim.pathfinder, navmesh_settings, include_static_objects=True)
-            add_done = True
-            if surface_name != "floor" and surface_angle < 20:
-                add_done = False
-            return scene_object_id, add_done
-        return None, False
+        obj_sem_inst_id = np.array(list(self.mapping.keys())).max() + 1
+        self._sim.set_object_semantic_id(obj_sem_inst_id, obj.object_id)
+        try:
+            self.mapping[obj_sem_inst_id] = len(CATEGORIES[self.dn]) + np.where([object_class == dc for dc in DETECT_CATEGORY])[0][0]
+        except:
+            self.mapping[obj_sem_inst_id] = len(CATEGORIES[self.dn])
+        map_object_x, map_object_y = self.tdv.to_grid(
+            object_position[0],
+            object_position[2],
+        )
+        semantic_idx = self.tdv.cat_top_down_map[map_object_y, map_object_x]
+        surface_name = CATEGORIES[self.dn][semantic_idx]
+        print("Add {} on {} at {}".format(object_name, surface_name, object_position))
+        print(f"object map pose: {object_map_position[0]},{object_map_position[1]}")
+        print(f"object position: {object_position}")
+        self.tdv.draw_object(object_map_position)
+        navmesh_settings = habitat_sim.NavMeshSettings()
+        navmesh_settings.set_defaults()
+        navmesh_success = self._sim.recompute_navmesh(self._sim.pathfinder, navmesh_settings, include_static_objects=True)
+        add_done = True
+        return obj.object_id, add_done
 
     def set_agent_loc_with_obj(self, object_position):
         num_try = 0

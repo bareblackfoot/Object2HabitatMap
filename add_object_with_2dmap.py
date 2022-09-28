@@ -19,8 +19,9 @@ parser.add_argument('--img_width', default=256, type=int)
 parser.add_argument('--img_height', default=256, type=int)
 parser.add_argument('--map_width', default=256, type=int)
 parser.add_argument('--data_split', default='train', type=str)
+parser.add_argument('--load_dir', default='data', type=str)
 parser.add_argument('--cuda', default=True, type=bool)
-parser.add_argument('--add_prev_objects', action='store_true', default=False)
+parser.add_argument('--load_objects', action='store_true', default=False)
 parser.add_argument('--manual', action='store_true', default=False)
 parser.add_argument('--num_obj_per_floor', default=200, type=int)
 args = parser.parse_args()
@@ -28,8 +29,6 @@ args = parser.parse_args()
 statistic = []
 if not os.path.exists(args.data_dir):
     os.makedirs(args.data_dir)
-load_tot_obj_data_path = os.path.join(args.data_dir, 'test_gibson_tiny.dat.gz')
-tot_obj_data_path = os.path.join(args.project_dir, args.data_dir, 'test_gibson_tiny.dat.gz'.format(args.dataset, args.data_split))
 
 if args.dataset == "gibson":
     if args.data_split == "train":
@@ -116,15 +115,15 @@ class ObjectAdder(object):
     * Press 'z' to remove the recently added object.
     * Press 'c' to remove all the objects.
     * Press 's' to save the added objects.
-    * Press 'l' to load the added objects.
+    * Press 'l' to load the objects from file.
     * Press 'q' to quit.
     * Press 'h' to see the help.
-    * Press 'p' to see the added objects.
-    * You can change the object rotation by pressing 'j' and 'k' buttons.
-    * You can change the object scale by pressing 'u' and 'i' buttons.
-    * You can change the object position by pressing 'o' and 'p' buttons.
+    * You can change the object rotation by pressing '0 - = p [ ]' buttons.
+    * You can change the object position by pressing 'l ; ', . / ' buttons.
     """
     def __init__(self, args):
+        load_tot_obj_data_path = os.path.join(args.project_dir, args.load_dir, f'objects_{args.dataset}_{args.data_split}.dat.gz')
+        self.tot_obj_data_path = os.path.join(args.project_dir, args.data_dir, f'objects_{args.dataset}_{args.data_split}.dat.gz')
         if os.path.exists(load_tot_obj_data_path):
             self.tot_obj_data = joblib.load(load_tot_obj_data_path)
         else:
@@ -193,7 +192,7 @@ class ObjectAdder(object):
             if scene in self.tot_obj_data.keys():
                 object_pose_info = self.tot_obj_data[scene]
                 num_collected_objects = len([i for i in object_pose_info if len(i) != 0])
-                if args.add_prev_objects:
+                if args.load_objects:
                     for opn, opi in enumerate(object_pose_info):
                         if len(opi) > 0:
                             if 'name' in opi.keys():
@@ -267,17 +266,17 @@ class ObjectAdder(object):
                                 obj_id_pointer += 1
                         elif key == ord('s'):  # save data
                             self.save_data(runner, scene)
-                        elif key == ord('8'):  # save and go back to prev scene
+                        elif key == ord('8'):  # go back to prev scene
                             self.save_data(runner, scene)
                             prev_Scene = True
                             break
-                        elif key == ord('9'):  # save and start next scene
+                        elif key == ord('9'):  # start next scene
                             self.save_data(runner, scene)
                             next_Scene = True
                             break
                         elif key == ord('c'):  # clear objects
                             runner.remove_all_objects()
-                        elif key == ord('z'):  # undo adding last object
+                        elif key == ord('z'):  # remove the recently added object.
                             existing_objects = runner._sim.get_existing_object_ids()
                             if len(existing_objects) == 0: continue
                             runner._sim.remove_object(obj_id_pointer)
@@ -362,7 +361,7 @@ class ObjectAdder(object):
             self.scene_obj_data[obj]['translation'] = trans_array
             self.scene_obj_data[obj]['rotation'] = rotat_array
         self.tot_obj_data[scene] = self.scene_obj_data
-        joblib.dump(self.tot_obj_data, tot_obj_data_path)
+        joblib.dump(self.tot_obj_data, self.tot_obj_data_path)
         print("**Saved All**")
 
 

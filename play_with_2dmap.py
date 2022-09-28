@@ -69,7 +69,6 @@ def make_settings():
     settings["color_sensor"] = True
     settings["semantic_sensor"] = True
     settings["depth_sensor"] = True
-    # settings["front_sensor"] = True
     settings["print_semantic_scene"] = False
     settings["print_semantic_mask_stats"] = False
     settings["compute_shortest_path"] = False
