@@ -9,7 +9,7 @@ hm3d dataset is collected using habitat 0.2.2.
 
 ## Examples
 
-* See how to add objects using the maps.
+* See how to add objects using the maps.<br>
 [![IMAGE_ALT](https://img.youtube.com/vi/vCdYHH9GCOQ/0.jpg)](https://www.youtube.com/watch?v=vCdYHH9GCOQ)
 
 
