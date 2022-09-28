@@ -7,7 +7,12 @@ After collecting maps, add objects using the maps with add_object_with_2dmap.py
 gibson, mp3d, and gibson_tiny datasets are collected using habitat 0.2.1. <br>
 hm3d dataset is collected using habitat 0.2.2.
 
-## Example Output
+## Examples
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/vCdYHH9GCOQ" frameborder="0" 
+allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+allowfullscreen></iframe>
+
 * RGB Top Down Map <br>
 <img src="sample/rgb.png" alt="HM3D" width="400"/>
 
