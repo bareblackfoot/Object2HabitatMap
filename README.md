@@ -9,7 +9,8 @@ hm3d dataset is collected using habitat 0.2.2.
 
 ## Examples
 
-<iframe width="720" height="405" src="https://www.youtube.com/embed/vCdYHH9GCOQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+* See how to add objects using the maps.
+[![IMAGE_ALT](https://img.youtube.com/vi/vCdYHH9GCOQ/0.jpg)](https://www.youtube.com/watch?v=vCdYHH9GCOQ)
 
 
 * RGB Top Down Map <br>
