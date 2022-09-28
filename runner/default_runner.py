@@ -42,7 +42,6 @@ class DemoRunner:
         self.cam_width = float(sim_settings['width'])
         self.img_height = float(sim_settings['height'])
         self.shuffle_num = 0
-        self.debug = args.debug
         try:
             self.get_semantic_mapping()
         except:

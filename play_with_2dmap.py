@@ -99,7 +99,6 @@ class PlayMap(object):
     def start(self, settings):
         next_Scene = False
         for nh, scene in enumerate(scenes):
-            scene = "2azQ1b91cZZ"
             if args.dataset == "mp3d":
                 settings["scene"] = os.path.join(habitat_path, '../data/scene_datasets/{}/{}/{}.glb'.format(args.dataset, scene, scene))
             elif "gibson" in args.dataset:
@@ -121,10 +120,6 @@ class PlayMap(object):
                     topdownmap = runner.get_topdown_map()
                     view_img = image.copy()
                     cv2.imshow('vis_'+scene, view_img[:, :, [2, 1, 0]])
-                    # ortho_rgb_map = runner.get_ortho_rgb_map()
-                    # ortho_sem_map = runner.get_ortho_sem_map()
-                    # cv2.imshow("ortho_sem_map_"+scene, ortho_sem_map)
-                    # cv2.imshow("ortho_rgb_map_"+scene, ortho_rgb_map)
                     cv2.imshow("topdownmap_"+scene, topdownmap)
                     cv2.setMouseCallback('vis_'+scene, draw_circle)
                     cv2.setMouseCallback("topdownmap_"+scene, draw_circle_on_map)

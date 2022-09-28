@@ -9,7 +9,6 @@ parser.add_argument('--data_dir', default='data', type=str)
 parser.add_argument('--dataset', default='hm3d', type=str)
 parser.add_argument('--data_split', default='train', type=str)
 parser.add_argument('--cuda', default=True, type=bool)
-parser.add_argument('--debug', action='store_true', default=False)
 args = parser.parse_args()
 
 def make_settings():

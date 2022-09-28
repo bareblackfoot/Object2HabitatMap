@@ -29,3 +29,26 @@ After collecting the map, play with it using play_with_2dmap.py
 * Double click the map and press 'm' to move to the clicked position.
 * Press 'n' to move random point in the map.
 * Press 'v' to see next house.
+
+## Add Objects on Environments
+After collecting the map, add objects using a map add_object_with_2dmap.py
+
+### Usage
+* Use "edit" command to manually add objects on the map.
+* Otherwise, the code will automatically add objects on the environment.
+* You can use 'w/a/s/d' buttons to move an agent in the simulator.
+* Double click the map and press 'm' to move to the clicked position.
+* Press 'b' to move random point in the map.
+* Press 'n' to see next house.
+* Press 'i' to add an object to the clicked position.
+* Press 'z' to remove the recently added object.
+* Press 'c' to clear all the objects.
+* Press 's' to save the added objects.
+* Press 'l' to load the added objects.
+* Press 'q' to quit.
+* Press 'h' to see the help.
+* Press 'p' to see the added objects.
+* Press 'p' to see the added objects.
+* You can change the object rotation by pressing 'j' and 'k' buttons.
+* You can change the object scale by pressing 'u' and 'i' buttons.
+* You can change the object position by pressing 'o' and 'p' buttons.

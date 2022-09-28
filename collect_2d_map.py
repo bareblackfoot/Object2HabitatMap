@@ -17,7 +17,6 @@ parser.add_argument('--img_height', default=256, type=int)
 parser.add_argument('--dataset', default='hm3d', type=str)
 parser.add_argument('--data_split', default='train', type=str)
 parser.add_argument('--cuda', default=True, type=bool)
-parser.add_argument('--debug', action='store_true', default=False)
 args = parser.parse_args()
 
 if args.dataset == "mp3d":
@@ -228,12 +227,13 @@ class TDMapCollector(object):
                             semantic_orig = semantic_orig.astype(np.uint32)
                             plt.imsave(f"./data/{args.dataset}_floorplans/semantic_inst/orig_{scene}_level_{floor_cnt}.png", semantic_orig)
                             plt.imsave(f"./data/{args.dataset}_floorplans/semantic_inst/{scene}_level_{floor_cnt}.png", semantic_inst_img)
+                            cv2.imwrite(f"./data/{args.dataset}_floorplans/semantic_obj/orig_{scene}_level_{floor_cnt}.png", sem_category_array)
                             plt.imsave(f"./data/{args.dataset}_floorplans/semantic_obj/{scene}_level_{floor_cnt}.png", semantic_cat_img)
                             if hasattr(runner, 'region_mapping'):
-                                plt.imsave(f"./data/{args.dataset}_floorplans/semantic_region/orig_{scene}_level_{floor_cnt}.png", sem_region_array)
+                                cv2.imwrite(f"./data/{args.dataset}_floorplans/semantic_region/orig_{scene}_level_{floor_cnt}.png", sem_region_array)
                                 plt.imsave(f"./data/{args.dataset}_floorplans/semantic_region/{scene}_level_{floor_cnt}.png", semantic_region_img)
                                 if hasattr(runner, 'region_name'):
-                                    plt.imsave(f"./data/{args.dataset}_floorplans/semantic_place/orig_{scene}_level_{floor_cnt}.png", sem_place_array)
+                                    cv2.imwrite(f"./data/{args.dataset}_floorplans/semantic_place/orig_{scene}_level_{floor_cnt}.png", sem_place_array)
                                     plt.imsave(f"./data/{args.dataset}_floorplans/semantic_place/{scene}_level_{floor_cnt}.png", semantic_place_img)
                         rgb = obs['ortho_rgba_sensor'][:,:,:3].astype(np.uint8)
                         rgb[depth==0] = 0
