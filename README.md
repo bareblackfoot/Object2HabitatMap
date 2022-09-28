@@ -1,6 +1,6 @@
 # Object2HabitatMap
 It provides RGB/Semantic(Instance, Category, Region, Place) Top Down Maps for Habitat-Sim.<br>
-The position on the map can be converted to the position in the habitat-sim scene (vice versa).
+The position on the map can be converted to the position in the habitat-sim scene (vice versa).<br>
 After collecting maps, add objects using the maps with add_object_with_2dmap.py
 
 ## Note
