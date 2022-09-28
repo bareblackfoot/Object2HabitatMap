@@ -9,9 +9,8 @@ hm3d dataset is collected using habitat 0.2.2.
 
 ## Examples
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/vCdYHH9GCOQ" frameborder="0" 
-allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
-allowfullscreen></iframe>
+<iframe width="720" height="405" src="https://www.youtube.com/embed/vCdYHH9GCOQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+
 
 * RGB Top Down Map <br>
 <img src="sample/rgb.png" alt="HM3D" width="400"/>
@@ -30,7 +29,7 @@ allowfullscreen></iframe>
 
 ## Download
 You can download the generated top down maps [Here](https://mysnu-my.sharepoint.com/:f:/g/personal/blackfoot_seoul_ac_kr/EvtGmk7nR2xIl6ddsOQXP4oBguEAJm5yt3WrMl8Cv4ZUaw?e=WNxYIs)
-and object data [Here]().
+and object data [Here](https://mysnu-my.sharepoint.com/:f:/g/personal/blackfoot_seoul_ac_kr/EnlMQwuYCyhIlaUR5ibGzEIBaYXL2_Krf7X_L_XI8nb8Xg?e=whL9BI). <br>
 The objects are adapted to habitat from [ShapeNetCore](https://shapenet.org/).
 
 
