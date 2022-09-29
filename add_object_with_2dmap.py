@@ -124,10 +124,10 @@ class ObjectAdder(object):
     * You can change the object position by pressing 'l ; ', . / ' buttons.
     """
     def __init__(self, args):
-        load_tot_obj_data_path = os.path.join(args.project_dir, args.load_dir, f'objects_{args.dataset}_{args.data_split}.dat.gz')
+        self.load_tot_obj_data_path = os.path.join(args.project_dir, args.load_dir, f'objects_{args.dataset}_{args.data_split}.dat.gz')
         self.tot_obj_data_path = os.path.join(args.project_dir, args.data_dir, f'objects_{args.dataset}_{args.data_split}.dat.gz')
-        if os.path.exists(load_tot_obj_data_path):
-            self.tot_obj_data = joblib.load(load_tot_obj_data_path)
+        if os.path.exists(self.load_tot_obj_data_path):
+            self.tot_obj_data = joblib.load(self.load_tot_obj_data_path)
         else:
             self.tot_obj_data = {}
         self.max_num_objects = {}
@@ -288,14 +288,18 @@ class ObjectAdder(object):
                             runner.init_with_random_episode()
                             runner.init_common()
                         elif key == ord('l'):
-                            object_pose_info = self.tot_obj_data[scene]
-                            num_collected_objects = len([i for i in object_pose_info if len(i) != 0])
-                            for opn, opi in object_pose_info.items():
-                                if len(opi) > 0:
-                                    if 'name' in opi.keys():
-                                        obj_id_pointer = runner.add_object_to_state(opi)
-                                        self.scene_obj_data[obj_id_pointer] = opi
-                                        print("Loaded {}th object: {}".format(opn + 1, opi['name']))
+                            if os.path.exists(self.load_tot_obj_data_path):
+                                object_pose_info = joblib.load(self.load_tot_obj_data_path)
+                                object_pose_info = object_pose_info[scene]
+                                num_collected_objects = len([i for i in object_pose_info if len(i) != 0])
+                                for opn, opi in object_pose_info.items():
+                                    if len(opi) > 0:
+                                        if 'name' in opi.keys():
+                                            obj_id_pointer = runner.add_object_to_state(opi)
+                                            self.scene_obj_data[obj_id_pointer] = opi
+                                            print("Loaded {}th object: {}".format(opn + 1, opi['name']))
+                            else:
+                                print("No saved data found")
                         elif key == ord('o'):  # select the object
                             obj_id_pointer = selected_obj_id
                             try:
