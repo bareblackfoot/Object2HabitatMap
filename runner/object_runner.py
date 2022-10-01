@@ -417,6 +417,27 @@ class ObjectRunner:
                     return False
         return True
 
+    def get_place_height(self, object_position):
+        place_height = self.current_position[1]
+        object_position = Vector3(object_position[0], place_height, object_position[1])
+        test_ray_1 = habitat_sim.geo.Ray()
+        object_position[1] = object_position[1] + 0.5
+        test_ray_1.origin = object_position
+        test_ray_1.direction = mn.Vector3(habitat_sim.geo.UP)
+        ray_result_up = self._sim.cast_ray(test_ray_1)
+        heights = np.stack([hit.point[1] for hit in ray_result_up.hits])
+        if len(ray_result_up.hits) != 0:
+            floor_top = heights[heights > place_height + 1.0][0]
+            object_position[1] = floor_top
+            test_ray_1 = habitat_sim.geo.Ray()
+            test_ray_1.origin = object_position
+            test_ray_1.direction = mn.Vector3(habitat_sim.geo.GRAVITY)
+            ray_result_down = self._sim.cast_ray(test_ray_1)
+            if len(ray_result_down.hits) != 0:
+                heights = np.stack([hit.point[1] for hit in ray_result_down.hits])
+                place_height = np.maximum(heights[0], place_height)
+        return place_height
+
     def add_single_object(self, object_position, semantic_id, category=None):
         semantic_name = CATEGORIES[self.dn][semantic_id]
         if category == None:
@@ -432,10 +453,9 @@ class ObjectRunner:
             object_offset = Vector3(0, -self._sim.get_object_scene_node(obj.object_id).cumulative_bb.bottom, 0)
         else:
             raise NotImplementedError
-        obj.translation = Vector3(object_position[0], self.current_position[1], object_position[1]) + object_offset
-        quat = Quaternion(((0, 0, 0), 1))
-        obj.rotation = quat
-        self._sim.set_object_motion_type(MotionType.STATIC, obj.object_id)
+        place_height = self.get_place_height(object_position)
+        obj.translation = Vector3(object_position[0], place_height, object_position[1]) + object_offset
+        obj.motion_type = MotionType.STATIC
 
         print("**Added " + str(obj.object_id) + "-th object of type " + object_name + " on " + semantic_name + "**")
         success = True
@@ -449,7 +469,7 @@ class ObjectRunner:
         obj = self.rigid_obj_mgr.add_object_by_template_id(obj_template_id)
         obj.translation = Vector3(object_position[0], object_position[1], object_position[2])
         obj.rotation = Quaternion((object_rotation[1], object_rotation[2], object_rotation[3]), object_rotation[0])
-        self._sim.set_object_motion_type(MotionType.STATIC, obj.object_id)
+        obj.motion_type = MotionType.STATIC
         return obj.object_id
 
     def calculate_navmesh(self):
@@ -575,24 +595,29 @@ class ObjectRunner:
         else:
             mag_q *= mag_q.rotation(Rad(np.pi/2), Vector3.z_axis())
         new_Q = mag_q  # .normalized()
-        self._sim.set_object_motion_type(MotionType.KINEMATIC, scene_object_id)
-        self._sim.set_rotation(new_Q, scene_object_id)
-        self._sim.set_object_motion_type(MotionType.STATIC, scene_object_id)
+        obj = self.rigid_obj_mgr.get_object_by_id(scene_object_id)
+        obj.motion_type = MotionType.KINEMATIC
+        obj.rotation = new_Q
+        obj.motion_type = MotionType.STATIC
 
     def change_scale(self, scene_object_id, dir="+"):
-        tt = self._sim.get_s(scene_object_id)
-        self._sim.set_object_motion_type(MotionType.KINEMATIC, scene_object_id)
-        self._sim.set_(tt, scene_object_id)
-        self._sim.set_object_motion_type(MotionType.STATIC, scene_object_id)
+        obj = self.rigid_obj_mgr.get_object_by_id(scene_object_id)
+        obj.motion_type = MotionType.KINEMATIC
+        if dir == "+":
+            obj.scale *= 1.1
+        else:
+            obj.scale *= 0.9
+        obj.motion_type = MotionType.STATIC
 
     def translate_object(self, scene_object_id, axis='x', updown='up'):
         tt = self._sim.get_translation(scene_object_id)
         axis_map = {'x': 0, 'y': 1, 'z': 2}
         sign = 1 if updown is 'up' else -1
         tt[axis_map[axis]] += sign * 0.01
-        self._sim.set_object_motion_type(MotionType.KINEMATIC, scene_object_id)
-        self._sim.set_translation(tt, scene_object_id)
-        self._sim.set_object_motion_type(MotionType.STATIC, scene_object_id)
+        obj = self.rigid_obj_mgr.get_object_by_id(scene_object_id)
+        obj.motion_type = MotionType.KINEMATIC
+        obj.translation = tt
+        obj.motion_type = MotionType.STATIC
 
     def set_default_rotate(self, scene_object_id, axis='x'):
         new_Q = Quaternion((0., 0., 0.), 1.)
@@ -602,9 +627,10 @@ class ObjectRunner:
             new_Q = new_Q.rotation(Rad(np.pi / 2), Vector3.y_axis())
         elif axis == 'z':
             new_Q = new_Q.rotation(Rad(np.pi / 2), Vector3.z_axis())
-        self._sim.set_object_motion_type(MotionType.KINEMATIC, scene_object_id)
-        self._sim.set_rotation(new_Q, scene_object_id)
-        self._sim.set_object_motion_type(MotionType.STATIC, scene_object_id)
+        obj = self.rigid_obj_mgr.get_object_by_id(scene_object_id)
+        obj.motion_type = MotionType.KINEMATIC
+        obj.rotation = new_Q
+        obj.motion_type = MotionType.STATIC
 
     def move_to_map(self, mapX, mapY):
         print(f"moving to {mapX}, {mapY}")
@@ -680,13 +706,12 @@ class ObjectRunner:
         object_position = Vector3([world_x, self.current_position[1], world_y]) + object_offset
         quat = Quaternion(((0, 0, 0), 1))
         obj.rotation = quat
-        self._sim.set_object_motion_type(MotionType.STATIC, obj.object_id)
+        obj.motion_type = MotionType.STATIC
         # Set agent loc
         self.set_agent_loc_with_obj(object_position)
-        self._sim.set_object_motion_type(MotionType.STATIC, obj.object_id)
 
         obj_sem_inst_id = np.array(list(self.mapping.keys())).max() + 1
-        self._sim.set_object_semantic_id(obj_sem_inst_id, obj.object_id)
+        obj.semantic_id = obj_sem_inst_id
         try:
             self.mapping[obj_sem_inst_id] = len(CATEGORIES[self.dn]) + np.where([object_class == dc for dc in DETECT_CATEGORY])[0][0]
         except:

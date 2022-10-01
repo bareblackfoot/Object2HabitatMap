@@ -15,13 +15,13 @@ parser = argparse.ArgumentParser(description='Auto Add Object')
 parser.add_argument('--project_dir', default='.', type=str)
 parser.add_argument('--data_dir', default='data', type=str)
 parser.add_argument('--dataset', default='mp3d', type=str)
-parser.add_argument('--img_width', default=256, type=int)
 parser.add_argument('--img_height', default=256, type=int)
 parser.add_argument('--map_width', default=256, type=int)
 parser.add_argument('--data_split', default='train', type=str)
 parser.add_argument('--load_dir', default='data', type=str)
 parser.add_argument('--cuda', default=True, type=bool)
 parser.add_argument('--load_objects', action='store_true', default=False)
+parser.add_argument('--fix_category', default="", type=str)
 parser.add_argument('--manual', action='store_true', default=False)
 parser.add_argument('--num_obj_per_floor', default=200, type=int)
 args = parser.parse_args()
@@ -50,7 +50,7 @@ elif args.dataset == "hm3d":
         scenes = HM3D_TRAIN_SCENE
     elif args.data_split == "val":
         scenes = HM3D_VAL_SCENE
-
+scenes = ['2azQ1b91cZZ']
 mouseX = 0
 mouseY = 0
 mapX = 0
@@ -74,7 +74,7 @@ def draw_circle_on_map(event, x, y, flags, param):
 def make_settings():
     settings = default_sim_settings.copy()
     settings["max_frames"] = 100
-    settings["width"] = args.img_width
+    settings["width"] = args.img_height
     settings["height"] = args.img_height
     settings["scene"] = ''
     settings["save_png"] = False  # args.save_png
@@ -257,8 +257,10 @@ class ObjectAdder(object):
                         elif key == ord('q'):
                             break
                         elif key == ord('i'):  # insert an object by category
-                            category = input('Enter object category: ')
-                            # category = "chair"
+                            if args.fix_category != "":
+                                category = args.fix_category
+                            else:
+                                category = input('Enter object category: ')
                             semantic_id = runner.tdv.cat_top_down_map[int(mapY/ratio), int(mapX/ratio)]
                             add_done = False
                             while not add_done:

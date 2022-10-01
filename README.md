@@ -9,7 +9,7 @@ hm3d dataset is collected using habitat 0.2.2.
 
 ## Examples
 
-* See how to add objects using the maps.<br>
+* See the below youtube video for knowing how to add objects using the maps.<br>
 [![IMAGE_ALT](https://img.youtube.com/vi/vCdYHH9GCOQ/0.jpg)](https://www.youtube.com/watch?v=vCdYHH9GCOQ)
 
 
@@ -30,7 +30,7 @@ hm3d dataset is collected using habitat 0.2.2.
 
 ## Download
 You can download the generated top down maps [Here](https://mysnu-my.sharepoint.com/:f:/g/personal/blackfoot_seoul_ac_kr/EvtGmk7nR2xIl6ddsOQXP4oBguEAJm5yt3WrMl8Cv4ZUaw?e=WNxYIs)
-and object data [Here](https://mysnu-my.sharepoint.com/:f:/g/personal/blackfoot_seoul_ac_kr/EnlMQwuYCyhIlaUR5ibGzEIBaYXL2_Krf7X_L_XI8nb8Xg?e=whL9BI). <br>
+and object data [Here](https://mysnu-my.sharepoint.com/:f:/g/personal/blackfoot_seoul_ac_kr/EnlMQwuYCyhIlaUR5ibGzEIBaYXL2_Krf7X_L_XI8nb8Xg?e=2HQpKM). <br>
 The objects are adapted to habitat from [ShapeNetCore](https://shapenet.org/).
 
 
