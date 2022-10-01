@@ -30,7 +30,7 @@ hm3d dataset is collected using habitat 0.2.2.
 
 ## Download
 You can download the generated top down maps [Here](https://mysnu-my.sharepoint.com/:f:/g/personal/blackfoot_seoul_ac_kr/EvtGmk7nR2xIl6ddsOQXP4oBguEAJm5yt3WrMl8Cv4ZUaw?e=WNxYIs)
-and object data [Here](https://mysnu-my.sharepoint.com/:f:/g/personal/blackfoot_seoul_ac_kr/EnlMQwuYCyhIlaUR5ibGzEIBaYXL2_Krf7X_L_XI8nb8Xg?e=2HQpKM). <br>
+and object data [Here](https://mysnu-my.sharepoint.com/:u:/g/personal/blackfoot_seoul_ac_kr/EZl7wg4EFWlJu6NzapvKnTsBJomhd_TJoD5JXloC1h58nw?e=tNHtMO). <br>
 The objects are adapted to habitat from [ShapeNetCore](https://shapenet.org/).
 
 
