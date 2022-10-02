@@ -50,7 +50,7 @@ elif args.dataset == "hm3d":
         scenes = HM3D_TRAIN_SCENE
     elif args.data_split == "val":
         scenes = HM3D_VAL_SCENE
-scenes = ['2azQ1b91cZZ']
+# scenes = ['2azQ1b91cZZ']
 mouseX = 0
 mouseY = 0
 mapX = 0
