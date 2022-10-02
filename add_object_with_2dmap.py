@@ -22,6 +22,7 @@ parser.add_argument('--load_dir', default='data', type=str)
 parser.add_argument('--cuda', default=True, type=bool)
 parser.add_argument('--load_objects', action='store_true', default=False)
 parser.add_argument('--fix_category', default="", type=str)
+parser.add_argument('--fix_scene', default="", type=str)
 parser.add_argument('--manual', action='store_true', default=False)
 parser.add_argument('--num_obj_per_floor', default=200, type=int)
 args = parser.parse_args()
@@ -50,7 +51,10 @@ elif args.dataset == "hm3d":
         scenes = HM3D_TRAIN_SCENE
     elif args.data_split == "val":
         scenes = HM3D_VAL_SCENE
-# scenes = ['2azQ1b91cZZ']
+
+if args.fix_scene != "":
+    scenes = [args.fix_scene]
+
 mouseX = 0
 mouseY = 0
 mapX = 0
