@@ -206,10 +206,6 @@ class ObjectRunner:
             'pillow': ['sofa', 'bed', 'table'],
             'etc': ['sofa', 'bed', 'table', 'counter', 'seating', 'furniture', 'cabinet','chest_of_drawers','sink','appliances','chair','stool'],
         }
-        try:
-            self.get_semantic_mapping()
-        except:
-            pass
         self.xs, self.ys = np.meshgrid(np.linspace(-1, 1, int(self.img_width)), np.linspace(1, -1, int(self.img_height)))
         self.num_of_camera = 1
         if self.multiview:
@@ -391,7 +387,17 @@ class ObjectRunner:
         xys = np.array([rx * random_depth, ry * random_depth, -random_depth, 1])
         xy_world = np.matmul(T_world_camera, xys)
 
+        gt_obj_id = None
         try:
+            object_locations = np.stack(self.gt_object_id_to_loc.values())
+            dist = np.sum((object_locations[:,[0,2]] - xy_world[[0,2]])**2, axis=1)**0.5
+            obj_idx = np.where(dist < 0.3)[0]
+            if len(obj_idx) > 0:
+                if len(obj_idx) > 1:
+                    obj_idx = obj_idx[np.argmin(dist[obj_idx])]
+                else:
+                    obj_idx = obj_idx[0]
+                gt_obj_id = np.stack(self.gt_object_id_to_loc.keys())[obj_idx]
             if existing_objects_info != None:
                 object_distance = [np.sum((existing_objects_info[i]['translation'] - xy_world[:3]) ** 2) ** (0.5) for i
                                    in range(len(existing_objects_info)) if len(existing_objects_info[i].keys()) > 0]
@@ -400,11 +406,11 @@ class ObjectRunner:
                 scene_object_id = None
                 if np.stack(object_distance).min() < 1:
                     scene_object_id = scene_object_ids[np.stack(object_distance).argmin()]
-                return xy_world, sensors, scene_object_id
+                return xy_world, sensors, scene_object_id, gt_obj_id
             else:
-                return xy_world, sensors, None
+                return xy_world, sensors, None, gt_obj_id
         except:
-            return xy_world, sensors, None
+            return xy_world, sensors, None, gt_obj_id
 
     def pixel_pose_validation(self, contour, pixel):
         pix_x, pix_y = pixel
@@ -673,6 +679,7 @@ class ObjectRunner:
     def get_semantic_mapping(self):
         scene_objects = self._sim.semantic_scene.objects
         self.mapping = {int(obj.id.split("_")[-1]): obj.category.index() for obj in scene_objects if obj != None}
+        self.gt_object_id_to_loc = {int(obj.id.split("_")[-1]):obj.aabb.center for obj in scene_objects if obj != None}
 
     def autoadd_2dmap(self):
         # What to place

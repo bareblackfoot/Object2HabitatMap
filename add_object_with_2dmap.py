@@ -239,8 +239,9 @@ class ObjectAdder(object):
                         cv2.setMouseCallback("input_"+scene, draw_circle_on_map)
                         key = cv2.waitKeyEx(0)
                         pose_world = runner.tdv.from_grid(int(mapX/ratio), int(mapY/ratio))
-                        _, _, selected_obj_id = runner.pixel_to_world([mouseX, mouseY], depth, self.scene_obj_data)
+                        xy_world, _, selected_obj_id, gt_obj_id = runner.pixel_to_world([mouseX, mouseY], depth, self.scene_obj_data)
                         if pose_world is False: continue
+                        # print(xy_world, selected_obj_id, gt_obj_id)
 
                         existing_objects = runner._sim.get_existing_object_ids()
                         if len(existing_objects) > 0:
