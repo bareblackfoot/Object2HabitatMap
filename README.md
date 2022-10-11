@@ -65,9 +65,12 @@ After collecting the map, play with it using play_with_2dmap.py
 
 ## Citation
 If you use habitat map in your research, please use the following BibTeX entry.
+```BibTeX
 @misc{kim2022habitatmap,
   author =       {Nuri Kim},
   title =        {Object2HabitatMap},
   howpublished = {\url{https://github.com/bareblackfoot/Object2HabitatMap}},
   year =         {2022}
 }
+}
+```
