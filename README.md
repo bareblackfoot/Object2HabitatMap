@@ -3,9 +3,24 @@ It provides RGB/Semantic(Instance, Category, Region, Place) Top Down Maps for Ha
 The position on the map can be converted to the position in the habitat-sim scene (vice versa).<br>
 After collecting maps, add objects using the maps with add_object_with_2dmap.py
 
-## Note
+## Installation
 gibson, mp3d, and gibson_tiny datasets are collected using habitat 0.2.1. <br>
 hm3d dataset is collected using habitat 0.2.2.
+
+To start, we prefer creating the environment using conda:
+
+```
+conda env create -f habitat_v21.yml
+conda activate habitat_v21
+```
+or
+
+```
+conda env create -f habitat_v22.yml
+conda activate habitat_v22
+```
+
+Please make sure you have up-to-date NVIDIA drivers supporting CUDA 10.1 at least.
 
 ## Examples
 
