@@ -4,23 +4,63 @@ The position on the map can be converted to the position in the habitat-sim scen
 After collecting maps, add objects using the maps with add_object_with_2dmap.py
 
 ## Installation
+The source code is developed and tested in the following setting. 
+- Python 3.7
+- habitat-sim 0.2.1
+- habitat 0.2.1 or habitat 0.2.2
+
 gibson, mp3d, and gibson_tiny datasets are collected using habitat 0.2.1. <br>
 hm3d dataset is collected using habitat 0.2.2.
 
 To start, we prefer creating the environment using conda:
 
 ```
-conda env create -f habitat_v21.yml
+conda create -n habitat_v21 python=3.7 cmake=3.14.0
 conda activate habitat_v21
+conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
+cd 
+mkdir programs
+cd programs
+git clone --branch stable https://github.com/facebookresearch/habitat-lab.git habitat-lab-v21
+cd habitat-lab-v21
+git checkout tags/v0.2.1
+pip install -e habitat-lab  # install habitat_lab
 ```
 or
 
 ```
-conda env create -f habitat_v22.yml
+conda create -n habitat_v22 python=3.7 cmake=3.14.0
 conda activate habitat_v22
+conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
+cd 
+mkdir programs
+cd programs
+git clone --branch stable https://github.com/facebookresearch/habitat-lab.git habitat-lab-v22
+cd habitat-lab-v22
+git checkout tags/v0.2.2
+pip install -e habitat-lab  # install habitat_lab
 ```
 
 Please make sure you have up-to-date NVIDIA drivers supporting CUDA 10.1 at least.
+
+### Env Setup
+
+Most of the scripts in this code build the environments assuming that the **datasets** are in **habitat-lab/data/** folder.
+
+The recommended folder structure of habitat-lab:
+```
+habitat-lab 
+  └── data
+      └── scene_datasets
+          └── gibson_habitat
+              └── *.glb, *.navmeshs  
+          └── mp3d
+              └── *.glb, *.navmeshs  
+          └── hm3d
+              └── *.glb, *.navmeshs  
+```
+
+Download the above data [Here](https://github.com/facebookresearch/habitat-lab/blob/main/DATASETS.md).
 
 ## Examples
 
