@@ -289,7 +289,7 @@ class ObjectAdder(object):
                         elif key == ord('z'):  # remove the recently added object.
                             existing_objects = runner.get_existing_object_ids()
                             if len(existing_objects) == 0: continue
-                            runner._sim.remove_object(obj_id_pointer)
+                            runner.remove_object(obj_id_pointer)
                             self.scene_obj_data[obj_id_pointer] = {}
                             print("**Removed " + str(obj_id_pointer) + "-th object**")
                         elif key == ord('n'):  # move to random navigable point
