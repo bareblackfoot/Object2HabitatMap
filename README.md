@@ -72,5 +72,4 @@ If you use habitat map in your research, please use the following BibTeX entry.
   howpublished = {\url{https://github.com/bareblackfoot/Object2HabitatMap}},
   year =         {2022}
 }
-}
 ```
