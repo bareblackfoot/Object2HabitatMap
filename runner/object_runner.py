@@ -434,7 +434,7 @@ class ObjectRunner:
         heights = np.stack([hit.point[1] for hit in ray_result_up.hits])
         if len(ray_result_up.hits) != 0:
             floor_top = heights[heights > place_height + 1.0][0]
-            object_position[1] = floor_top
+            object_position[1] = floor_top - 0.1
             test_ray_1 = habitat_sim.geo.Ray()
             test_ray_1.origin = object_position
             test_ray_1.direction = mn.Vector3(habitat_sim.geo.GRAVITY)
@@ -445,7 +445,11 @@ class ObjectRunner:
         return place_height
 
     def add_single_object(self, object_position, semantic_id, category=None):
-        semantic_name = CATEGORIES[self.dn][semantic_id]
+
+        if self.dataset == "hm3d":
+            semantic_name = {cat.index():cat.name() for cat in self._sim.semantic_scene.categories}[semantic_id]
+        else:
+            semantic_name = CATEGORIES[self.dn][semantic_id]
         if category == None:
             category = np.random.choice(list(object_infos.keys()))
         self.shuffle_num = (self.shuffle_num + 1) % len(object_infos[category])
@@ -456,13 +460,15 @@ class ObjectRunner:
         if habitat.__version__ == "0.2.2":
             object_offset = Vector3(0, -obj.collision_shape_aabb.bottom, 0)
         elif habitat.__version__ == "0.2.1":
-            object_offset = Vector3(0, -self._sim.get_object_scene_node(obj.object_id).cumulative_bb.bottom, 0)
+            try:
+                object_offset = Vector3(0, -self._sim.get_object_scene_node(obj.object_id).cumulative_bb.bottom, 0)
+            except:
+                object_offset = Vector3(0, -obj.collision_shape_aabb.bottom, 0)
         else:
             raise NotImplementedError
         place_height = self.get_place_height(object_position)
         obj.translation = Vector3(object_position[0], place_height, object_position[1]) + object_offset
         obj.motion_type = MotionType.STATIC
-
         print("**Added " + str(obj.object_id) + "-th object of type " + object_name + " on " + semantic_name + "**")
         success = True
         return obj.object_id, success
@@ -673,8 +679,8 @@ class ObjectRunner:
         agent.set_state(start_state)
 
     def remove_all_objects(self):
-        for obj_id in self._sim.get_existing_object_ids():
-            self._sim.remove_object(obj_id)
+        for obj_id in self.get_existing_object_ids():
+            self.remove_object(obj_id)
 
     def get_semantic_mapping(self):
         scene_objects = self._sim.semantic_scene.objects
@@ -767,3 +773,17 @@ class ObjectRunner:
     @property
     def current_position(self):
         return self._sim.agents[0].state.position
+
+    def get_existing_object_ids(self):
+        try:
+            ids = self._sim.get_existing_object_ids()
+        except:
+            handles = self.rigid_obj_mgr.get_object_handles()
+            ids = [self.rigid_obj_mgr.get_object_id_by_handle(handle) for handle in handles]
+        return ids
+
+    def remove_object(self, obj_id):
+        try:
+            self._sim.remove_object(obj_id)
+        except:
+            self.rigid_obj_mgr.remove_object_by_id(obj_id)

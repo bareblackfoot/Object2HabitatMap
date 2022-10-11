@@ -61,3 +61,13 @@ After collecting the map, play with it using play_with_2dmap.py
 * Press 'h' to see the help.
 * You can change the object rotation by pressing '0 - = p [ ]' buttons.
 * You can change the object position by pressing 'l ; ', . / ' buttons.
+
+
+## Citation
+If you use habitat map in your research, please use the following BibTeX entry.
+@misc{kim2022habitatmap,
+  author =       {Nuri Kim},
+  title =        {Object2HabitatMap},
+  howpublished = {\url{https://github.com/bareblackfoot/Object2HabitatMap}},
+  year =         {2022}
+}

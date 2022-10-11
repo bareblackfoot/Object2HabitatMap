@@ -139,10 +139,13 @@ class ObjectAdder(object):
             data_info = json.load(open("./utils/scene_info/mp3d/mp3d_scan_levels.json", "r"))
             for scene in scenes:
                 self.max_num_objects[scene] = args.num_obj_per_floor * int(data_info[scene]['levels'])
-        else:
+        elif "gibson" in args.dataset:
             data_info = json.load(open("./utils/scene_info/gibson/gibson_scan_levels.json", "r"))
             for scene in scenes:
                 self.max_num_objects[scene] = args.num_obj_per_floor * int(data_info[scene]['floors'])
+        else:
+            for scene in scenes:
+                self.max_num_objects[scene] = args.num_obj_per_floor
 
     def analyze_objects(self):
         if len(self.tot_obj_data.items()) > 0:
@@ -241,9 +244,7 @@ class ObjectAdder(object):
                         pose_world = runner.tdv.from_grid(int(mapX/ratio), int(mapY/ratio))
                         xy_world, _, selected_obj_id, gt_obj_id = runner.pixel_to_world([mouseX, mouseY], depth, self.scene_obj_data)
                         if pose_world is False: continue
-                        # print(xy_world, selected_obj_id, gt_obj_id)
-
-                        existing_objects = runner._sim.get_existing_object_ids()
+                        existing_objects = runner.get_existing_object_ids()
                         if len(existing_objects) > 0:
                             obj_id_pointer = obj_id_pointer if obj_id_pointer in existing_objects else existing_objects[-1]
                         else:
@@ -286,12 +287,12 @@ class ObjectAdder(object):
                         elif key == ord('c'):  # clear objects
                             runner.remove_all_objects()
                         elif key == ord('z'):  # remove the recently added object.
-                            existing_objects = runner._sim.get_existing_object_ids()
+                            existing_objects = runner.get_existing_object_ids()
                             if len(existing_objects) == 0: continue
                             runner._sim.remove_object(obj_id_pointer)
                             self.scene_obj_data[obj_id_pointer] = {}
                             print("**Removed " + str(obj_id_pointer) + "-th object**")
-                        elif key == ord('b'):  # move to random navigable point
+                        elif key == ord('n'):  # move to random navigable point
                             runner.init_with_random_episode()
                             runner.init_common()
                         elif key == ord('l'):
@@ -363,17 +364,17 @@ class ObjectAdder(object):
             print("Processed {} of {}/{}".format(scene, scene_idx+1, len(scenes)))
 
     def save_data(self, runner, scene):
-        existing_objects = runner._sim.get_existing_object_ids()
-        for obj in existing_objects:
-            obj_ = runner.rigid_obj_mgr.get_object_by_id(obj)
-            trans = runner._sim.get_translation(obj)
-            rotat = runner._sim.get_rotation(obj)
+        existing_object_ids = runner.get_existing_object_ids()
+        for obj_id in existing_object_ids:
+            obj = runner.rigid_obj_mgr.get_object_by_id(obj_id)
+            trans = obj.translation
+            rotat = obj.rotation
             trans_array = np.array([trans.x, trans.y, trans.z])
             rotat_array = np.array([rotat.scalar, rotat.vector.x, rotat.vector.y, rotat.vector.z])
-            self.scene_obj_data[obj]['name'] = obj_.handle.split(":")[0][:-1]
-            self.scene_obj_data[obj]['category'] = obj_.handle.split("_")[0]
-            self.scene_obj_data[obj]['translation'] = trans_array
-            self.scene_obj_data[obj]['rotation'] = rotat_array
+            self.scene_obj_data[obj_id]['name'] = obj.handle.split(":")[0][:-1]
+            self.scene_obj_data[obj_id]['category'] = obj.handle.split("_")[0]
+            self.scene_obj_data[obj_id]['translation'] = trans_array
+            self.scene_obj_data[obj_id]['rotation'] = rotat_array
         self.tot_obj_data[scene] = self.scene_obj_data
         joblib.dump(self.tot_obj_data, self.tot_obj_data_path)
         print("**Saved All**")
