@@ -1,4 +1,4 @@
-name: habitat
+name: habitat_v21
 channels:
   - aihabitat
   - conda-forge

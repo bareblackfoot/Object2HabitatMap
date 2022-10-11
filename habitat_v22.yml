@@ -1,4 +1,4 @@
-name: habitat-challenge2022
+name: habitat_v22
 channels:
   - aihabitat
   - conda-forge
