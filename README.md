@@ -17,28 +17,28 @@ To start, we prefer creating the environment using conda:
 ```
 conda create -n habitat_v21 python=3.7 cmake=3.14.0
 conda activate habitat_v21
-conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
+conda install habitat-sim==0.2.1 withbullet headless -c conda-forge -c aihabitat
 cd 
 mkdir programs
 cd programs
 git clone --branch stable https://github.com/facebookresearch/habitat-lab.git habitat-lab-v21
 cd habitat-lab-v21
 git checkout tags/v0.2.1
-pip install -e habitat-lab  # install habitat_lab
+pip install -e .
 ```
 or
 
 ```
 conda create -n habitat_v22 python=3.7 cmake=3.14.0
 conda activate habitat_v22
-conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
+conda install habitat-sim==0.2.2 withbullet headless -c conda-forge -c aihabitat
 cd 
 mkdir programs
 cd programs
 git clone --branch stable https://github.com/facebookresearch/habitat-lab.git habitat-lab-v22
 cd habitat-lab-v22
 git checkout tags/v0.2.2
-pip install -e habitat-lab  # install habitat_lab
+pip install -e .
 ```
 
 Please make sure you have up-to-date NVIDIA drivers supporting CUDA 10.1 at least.
@@ -49,10 +49,10 @@ Most of the scripts in this code build the environments assuming that the **data
 
 The recommended folder structure of habitat-lab:
 ```
-habitat-lab 
+habitat-lab
   └── data
       └── scene_datasets
-          └── gibson_habitat
+          └── gibson
               └── *.glb, *.navmeshs  
           └── mp3d
               └── *.glb, *.navmeshs  
