@@ -1,4 +1,5 @@
 import os
+os.environ['HABITAT_SIM_LOG'] = 'quiet';os.environ['MAGNUM_LOG'] = 'quiet';os.environ['GLOG_minloglevel'] = '2'
 import argparse
 import numpy as np
 import cv2, glob, joblib, csv
