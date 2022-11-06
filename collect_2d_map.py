@@ -240,6 +240,10 @@ class TDMapCollector(object):
                         # plt.imsave(f"./data/{args.dataset}_floorplans/depth/{scene}_level_{floor_cnt}.png", obs['ortho_depth_sensor'])
                         cv2.imwrite(f"./data/{args.dataset}_floorplans/mask/{scene}_level_{floor_cnt}.png", (((obs['ortho_depth_sensor'] > 0) & (1-mask))* 255).astype(np.uint8))
                         rgb_prev = obs['ortho_rgba_sensor']
+                        if hasattr(runner, 'region_to_place'):
+                            places = runner.region_to_place
+                        else:
+                            places = None
                         render_config = {
                             "scanId": scene,
                             "level": floor_cnt,
@@ -252,7 +256,7 @@ class TDMapCollector(object):
                             "width": frame_width,
                             "height": frame_height,
                             "Projection": np.array(P),
-                            "places": runner.region_to_place}
+                            "places": places}
                         if scene not in self.render_configs:
                             self.render_configs[scene] = {}
                         if floor_cnt not in self.render_configs[scene]:
