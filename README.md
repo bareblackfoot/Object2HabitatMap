@@ -7,28 +7,11 @@ After collecting the maps, add objects using the maps with **add_object_with_2dm
 ## Installation
 The source code is developed and tested in the following setting. 
 - Python 3.7
-- habitat-sim 0.2.1
-- habitat 0.2.1 or habitat 0.2.2
-
-Gibson, MP3D datasets are collected using habitat 0.2.1. <br>
-HM3D dataset is collected using habitat 0.2.2.
+- habitat-sim 0.2.2
+- habitat 0.2.2
 
 To start, we prefer creating the environment using conda:
 
-For habitat 0.2.1
-```
-conda create -n habitat_v21 python=3.7 cmake=3.14.0
-conda activate habitat_v21
-conda install habitat-sim==0.2.1 withbullet headless -c conda-forge -c aihabitat
-cd 
-mkdir programs
-cd programs
-git clone --branch stable https://github.com/facebookresearch/habitat-lab.git habitat-lab-v21
-cd habitat-lab-v21
-git checkout tags/v0.2.1
-pip install -e .
-```
-or, for habitat 0.2.2
 ```
 conda create -n habitat_v22 python=3.7 cmake=3.14.0
 conda activate habitat_v22
@@ -52,13 +35,17 @@ The recommended folder structure of habitat-lab:
 ```
 habitat-lab
   └── data
-      └── scene_datasets
-          └── gibson
-              └── *.glb, *.navmeshs  
-          └── mp3d
-              └── *.glb, *.navmeshs  
-          └── hm3d
-              └── *.glb, *.navmeshs  
+    └── object_datasets
+    └── scene_datasets
+      └── gibson_semantic.scene_dataset_config.json
+      └── mp3d.scene_dataset_config.json
+      └── hm3d_annotated_basis.scene_dataset_config.json
+      └── gibson
+        └── *.glb, *.navmeshs  
+      └── mp3d
+        └── *.glb, *.navmeshs  
+      └── hm3d
+        └── *.glb, *.navmeshs  
 ```
 
 Download the above data [Here](https://github.com/facebookresearch/habitat-lab/blob/main/DATASETS.md).

@@ -147,13 +147,12 @@ class TDMapCollector(object):
                 found, nav_height = runner.init_with_height(z, (lower_bound[0] + upper_bound[0])/2., (lower_bound[2] + upper_bound[2])/2.)
                 if found:
                     runner.init_common()
-                    z_low = nav_height
                     next_floor = np.argmin(floor_heights-nav_height) + 1
                     if next_floor < len(floor_heights):
                         z_high = floor_heights[next_floor]
                     else:
                         z_high = upper_bound[1]
-                    if abs(prev_z_selected - z_low) > 2:
+                    if abs(prev_z_selected - nav_height) > 2:
                         obs = runner._sim.get_sensor_observations()
                         depth = obs['ortho_depth_sensor']
                         mask = (abs(obs['ortho_rgba_sensor'][...,:3] - rgb_prev[...,:3]) < 3).all(axis=-1)
@@ -246,20 +245,21 @@ class TDMapCollector(object):
                             "level": floor_cnt,
                             "x_low": lower_bound[0],
                             "y_low": lower_bound[2],
-                            "z_low": z_low,
+                            "z_low": nav_height,
                             "x_high": upper_bound[0],
                             "y_high": upper_bound[2],
                             "z_high": z_high,
                             "width": frame_width,
                             "height": frame_height,
-                            "Projection": np.array(P)}
+                            "Projection": np.array(P),
+                            "places": runner.region_to_place}
                         if scene not in self.render_configs:
                             self.render_configs[scene] = {}
                         if floor_cnt not in self.render_configs[scene]:
                             self.render_configs[scene][floor_cnt] = {}
                         self.render_configs[scene][floor_cnt] = render_config
                         floor_cnt += 1
-                        prev_z_selected = z_low
+                        prev_z_selected = nav_height
                     print("Processed floor [{}] of house {} [{}/{}]".format(floor_cnt+1, scene, nh+1, len(scenes)))
         joblib.dump(self.render_configs, f"./data/{args.dataset}_floorplans/render_config.pkl")
 

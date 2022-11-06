@@ -54,6 +54,13 @@ def make_cfg(settings):
     sim_cfg.allow_sliding = True
     if "hm3d" in settings["scene"]:
         sim_cfg.scene_dataset_config_file = os.path.join("/".join(settings["scene"].split("/")[:-3]), "hm3d_annotated_basis.scene_dataset_config.json")
+        print("Using HM3D scene dataset config file: ", sim_cfg.scene_dataset_config_file)
+    if "mp3d" in settings["scene"]:
+        sim_cfg.scene_dataset_config_file = os.path.join("/".join(settings["scene"].split("/")[:-3]), "mp3d.scene_dataset_config.json")
+        print("Using MP3D scene dataset config file: ", sim_cfg.scene_dataset_config_file)
+    if "gibson" in settings["scene"]:
+        sim_cfg.scene_dataset_config_file = os.path.join("/".join(settings["scene"].split("/")[:-3]), "gibson_semantic.scene_dataset_config.json")
+        print("Using Gibson scene dataset config file: ", sim_cfg.scene_dataset_config_file)
     if "frustum_culling" in settings:
         sim_cfg.frustum_culling = settings["frustum_culling"]
     else:
