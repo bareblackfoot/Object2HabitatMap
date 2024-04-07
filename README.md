@@ -68,8 +68,8 @@ Download the above data [Here](https://github.com/facebookresearch/habitat-lab/b
 <img src="sample/place.png" alt="HM3DSemanticPlace" width="400"/>
 
 ## Download
-You can download the generated top down maps [Here](https://mysnu-my.sharepoint.com/:f:/g/personal/blackfoot_seoul_ac_kr/EvtGmk7nR2xIl6ddsOQXP4oBguEAJm5yt3WrMl8Cv4ZUaw?e=WNxYIs)
-and object data [Here](https://mysnu-my.sharepoint.com/:u:/g/personal/blackfoot_seoul_ac_kr/EZl7wg4EFWlJu6NzapvKnTsBJomhd_TJoD5JXloC1h58nw?e=tNHtMO). <br>
+You can download the generated top down maps [Here](https://drive.google.com/drive/folders/1Fx2dXFW5BiLoAM3Q8CIbKC7HRf356Zg9?usp=sharing)
+and object data [Here](https://drive.google.com/drive/folders/1GOnVF19tC-Z7D2kcMjtPE_eR62_DOtEj?usp=sharing). <br>
 The objects are adapted to habitat from [ShapeNetCore](https://shapenet.org/).
 
 ## Play with Map
